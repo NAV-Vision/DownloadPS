@@ -55,18 +55,6 @@ function testIsGuid {
    $ObjectGuid = [System.Guid]::empty
    return [System.Guid]::TryParse($StringGuid,[System.Management.Automation.PSReference]$ObjectGuid) # Returns True if successfully parsed
 }
-function OutputDebug {
-    Param(
-        [string] $message
-    )
-
-    if ($runningLocal) {
-        Write-Debug $message
-    }
-    else {
-        Write-Host "::Debug::[AL-Go]$message"
-    }
-}
 
 # extract appname from GITHUB_REPOSITORY if not specified in ALDEVOPS_SETTINGS
 $AppName = $AppName.Substring($AppName.IndexOf('/')+1)
@@ -97,6 +85,14 @@ try {
 }
 #Load Bccontainer
 PreLoadModule;
+
+#Import Pre script (functions are immediately available in the session)
+$URL = 'https://github.com/microsoft/AL-Go-Actions/blob/1728166fb73af77172fb788459cacbe8da6ab1d6/.Modules/DebugLogHelper.psm1'
+try{
+    New-Module -Name "$URL" -ScriptBlock ([Scriptblock]::Create((New-Object System.Net.WebClient).DownloadString($URL))) -ErrorAction SilentlyContinue > $null
+}catch{
+    Write-Verbose "Import-Module Failed to Import DebugLogHelper.psm1"
+}
 
 # create dynamic module from microsoft/AL-GO script block Github-Helper.psm1 (functions are immediately available in the session)
 $URL = 'https://raw.githubusercontent.com/microsoft/AL-Go-Actions/main/Github-Helper.psm1'
